@@ -1,0 +1,14 @@
+import express from 'express';
+import postRouter from './transport/routers/post.js';
+
+const app = express();
+const PORT = 8000;
+const HOST = 'localhost';
+
+app.use(express.json());
+
+app.use('/posts', postRouter);
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://${HOST}:${PORT}`);
+});

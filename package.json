@@ -7,9 +7,16 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsx ./src/server.ts"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "@types/node": "^26.6.3",
+    "express": "^5.2.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6"
   }
 }
