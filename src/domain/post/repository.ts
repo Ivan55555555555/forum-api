@@ -1,0 +1,64 @@
+import type { IPost } from './entity.js';
+
+export interface IPostRepository {
+  getAll(category?: string, take?: number): IPost[];
+  getById(id: string): IPost | null;
+  addPost(postData: Omit<IPost, 'id'>): Promise<IPost>;
+}
+
+const posts: IPost[] = [
+    {
+        id: "0", 
+        title: "First Post", 
+        content: "Hello World1", 
+        author: "John", 
+        category: "tech" 
+    },
+    {
+        id: "1", 
+        title: "Second Post", 
+        content: "Hello World2", 
+        author: "Anna", 
+        category: "food" 
+    },
+    {
+        id: "2", 
+        title: "Third Post", 
+        content: "Hello World3", 
+        author: "John", 
+        category: "tech" 
+    }
+];
+
+export function createPostRepository(): IPostRepository {
+  return {
+    getAll(category?: string, take?: number): IPost[] {
+      let filteredPosts = [...posts];
+
+      if (category) {
+        filteredPosts = filteredPosts.filter(post => post.category === category);
+      }
+
+      if (take !== undefined && !isNaN(take)) {
+        filteredPosts = filteredPosts.slice(0, take);
+      }
+
+      return filteredPosts;
+    },
+
+    getById(id: string): IPost | null {
+      return posts.find(post => post.id === id) || null;
+    },
+
+    addPost(postData: Omit<IPost, 'id'>): Promise<IPost> {
+      return new Promise((resolve) => {
+        const newPost: IPost = {
+          id: Date.now().toString(),
+          ...postData
+        };
+        posts.push(newPost);
+        resolve(newPost);
+      });
+    }
+  };
+}
