@@ -6,7 +6,7 @@ import { createPostHandler } from './transport/handlers/post.js';
 import { createPostRouter } from './transport/routers/post.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = 8000;
 const HOST = 'localhost';
 
 app.use(express.json());
