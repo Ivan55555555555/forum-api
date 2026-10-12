@@ -1,64 +1,37 @@
-export interface IPost {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  category: string;
+import type { IPost } from '../domain/post/entity.js';
+
+export interface IPostRepository {
+  getAll(category?: string, take?: number): Promise<IPost[]>;
+  getById(id: string): Promise<IPost | null>;
+  addPost(postData: Omit<IPost, 'id'>): Promise<IPost>;
 }
 
-const posts: IPost[] = [
-  { 
-    id: "0", 
-    title: "First Post", 
-    content: "Hello World1", 
-    author: "John", 
-    category: "tech" 
-  },
-  { 
-    id: "1", 
-    title: "Second Post", 
-    content: "Hello World2", 
-    author: "Anna", 
-    category: "food" 
-  },
-  { 
-    id: "2", 
-    title: "Thirst Post", 
-    content: "Hello World3", 
-    author: "John", 
-    category: "tech"
-  }
-];
+export function createPostRepository(db: any): IPostRepository {
+  return {
+    async getAll(category?: string, take?: number): Promise<IPost[]> {
+      const queryOptions: any = {};
+      
+      if (category) {
+        queryOptions.where = { category: category };
+      }
+      
+      if (take !== undefined && !isNaN(take)) {
+        queryOptions.take = take;
+      }
+      
+      return await db.post.findMany(queryOptions);
+    },
 
-class PostRepository {
-  public getAll(category?: string, take?: number): IPost[] {
-    let filteredPosts = [...posts];
+    async getById(id: string): Promise<IPost | null> {
+      return await db.post.findUnique({
+        where: { id: id }
+      });
+    },
 
-    if (category) {
-      filteredPosts = filteredPosts.filter(post => post.category === category);
+    async addPost(postData: Omit<IPost, 'id'>): Promise<IPost> {
+      return await db.post.create({
+        data: postData
+      });
     }
-
-    if (take !== undefined && !isNaN(take)) {
-      filteredPosts = filteredPosts.slice(0, take);
-    }
-
-    return filteredPosts;
-  }
-
-  public getById(id: string): IPost | null {
-    return posts.find(post => post.id === id) || null;
-  }
-
-  public addPost(postData: Omit<IPost, 'id'>): Promise<IPost> {
-    return new Promise((resolve) => {
-      const newPost: IPost = {
-        id: Date.now().toString(),
-        ...postData
-      };
-      posts.push(newPost);
-      resolve(newPost);
-    });
-  }
+  };
 }
-
-export default new PostRepository();

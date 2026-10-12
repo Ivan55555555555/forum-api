@@ -1,5 +1,5 @@
 import express from 'express';
-
+import { db } from './prisma/db.js'; 
 import { createPostRepository } from './domain/post/repository.js';
 import { createPostService } from './services/post.js';
 import { createPostHandler } from './transport/handlers/post.js';
@@ -11,7 +11,7 @@ const HOST = 'localhost';
 
 app.use(express.json());
 
-const postRepository = createPostRepository();
+const postRepository = createPostRepository(db);
 const postService = createPostService(postRepository);
 const postHandler = createPostHandler(postService);
 const postRouter = createPostRouter(postHandler);

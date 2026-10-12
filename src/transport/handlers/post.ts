@@ -3,30 +3,30 @@ import type { IPostService } from '../../services/post.types.js';
 import type { GetPostsQueryDto, GetPostParamsDto, CreatePostDto } from '../dto/post.js';
 
 export interface IPostHandler {
-  getPosts(req: Request<{}, {}, {}, GetPostsQueryDto>, res: Response): Response;
-  getPostById(req: Request<GetPostParamsDto>, res: Response): Response;
+  getPosts(req: Request<{}, {}, {}, GetPostsQueryDto>, res: Response): Promise<Response>;
+  getPostById(req: Request<GetPostParamsDto>, res: Response): Promise<Response>;
   createPost(req: Request<{}, {}, CreatePostDto>, res: Response): Promise<Response>;
 }
 
 export function createPostHandler(postService: IPostService): IPostHandler {
   return {
-    getPosts(req: Request<{}, {}, {}, GetPostsQueryDto>, res: Response): Response {
+    async getPosts(req: Request<{}, {}, {}, GetPostsQueryDto>, res: Response): Promise<Response> {
       try {
         const { category, take } = req.query;
-        const posts = postService.getPosts(category, take);
+        const posts = await postService.getPosts(category, take);
         return res.status(200).json(posts);
       } catch (error: any) {
         return res.status(500).json({ error: error.message });
       }
     },
 
-    getPostById(req: Request<GetPostParamsDto>, res: Response): Response {
+    async getPostById(req: Request<GetPostParamsDto>, res: Response): Promise<Response> {
       try {
         const { id } = req.params;
         if (!id || id.trim() === '') {
           return res.status(400).json({ error: 'ID parameter is required' });
         }
-        const post = postService.getPostById(id);
+        const post = await postService.getPostById(id);
         return res.status(200).json(post);
       } catch (error: any) {
         if (error.message === 'Post not found') {
