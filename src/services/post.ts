@@ -5,16 +5,16 @@ import type { IPostService } from './post.types.js';
 
 export function createPostService(postRepository: IPostRepository): IPostService {
   return {
-    getPosts(category?: string, take?: string | number): IPost[] {
+    async getPosts(category?: string, take?: string | number): Promise<IPost[]> {
       const parsedTake = typeof take === 'string' ? parseInt(take, 10) : take;
-      return postRepository.getAll(
+      return await postRepository.getAll(
         category, 
         parsedTake !== undefined && !isNaN(parsedTake) ? parsedTake : undefined
       );
     },
 
-    getPostById(id: string): IPost {
-      const post = postRepository.getById(id);
+    async getPostById(id: string): Promise<IPost> {
+      const post = await postRepository.getById(id);
       if (!post) {
         throw new Error('Post not found');
       }
