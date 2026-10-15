@@ -3,34 +3,38 @@ import type { IPost } from '../domain/post/entity.js';
 export interface IPostRepository {
   getAll(category?: string, take?: number): Promise<IPost[]>;
   getById(id: string): Promise<IPost | null>;
-  addPost(postData: Omit<IPost, 'id'>): Promise<IPost>;
+  addPost(postData: any): Promise<IPost>;
 }
 
 export function createPostRepository(db: any): IPostRepository {
   return {
     async getAll(category?: string, take?: number): Promise<IPost[]> {
-      const queryOptions: any = {};
-      
+      let query = db.orm.public.Post.include("category");
+
       if (category) {
-        queryOptions.where = { category: category };
+        query = query.where({ category: { name: category } });
       }
-      
-      if (take !== undefined && !isNaN(take)) {
-        queryOptions.take = take;
+
+      query = query.orderBy((post: any) => post.id.asc());
+
+      if (take === undefined || isNaN(take)) {
+        return await query.all();
       }
-      
-      return await db.post.findMany(queryOptions);
+      return await query.limit(take).all();
     },
 
     async getById(id: string): Promise<IPost | null> {
-      return await db.post.findUnique({
-        where: { id: id }
-      });
+      return await db.orm.public.Post
+        .where({ id: Number(id) })
+        .include("category")
+        .first();
     },
 
-    async addPost(postData: Omit<IPost, 'id'>): Promise<IPost> {
-      return await db.post.create({
-        data: postData
+    async addPost(postData: any): Promise<IPost> {
+      const { categoryId, ...fields } = postData;
+      return await db.orm.public.Post.create({
+        ...fields,
+        category: (category: any) => category.connect({ id: Number(categoryId) })
       });
     }
   };

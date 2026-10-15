@@ -1,44 +1,16 @@
-import type { IPost } from './entity.js';
+import type { Category } from "../category/entity.js";
 
-export interface IPostRepository {
-  getAll(category?: string, take?: number): Promise<IPost[]>;
-  getById(id: string): Promise<IPost | null>;
-  addPost(postData: Omit<IPost, 'id'>): Promise<IPost>;
+export interface Post {
+    id: number;
+    title: string;
+    content: string | null;
+    categoryId: number;
 }
 
-export function createPostRepository(db: any): IPostRepository {
-  return {
-    async getAll(category?: string, take?: number): Promise<IPost[]> {
-      const queryOptions: any = {};
-      
-      if (category) {
-        queryOptions.where = { category: category };
-      }
-      
-      if (take !== undefined && !isNaN(take)) {
-        queryOptions.take = take;
-      }
-      
-      const result = await db.post.findMany(queryOptions);
-      return result;
-    },
+export type PostWithCategory = Post & { category: Category };
 
-    async getById(id: string): Promise<IPost | null> {
-      const searchOptions = {
-        where: { id: id }
-      };
-      
-      const post = await db.post.findUnique(searchOptions);
-      return post;
-    },
-
-    async addPost(postData: Omit<IPost, 'id'>): Promise<IPost> {
-      const createOptions = {
-        data: postData
-      };
-      
-      const createdPost = await db.post.create(createOptions);
-      return createdPost;
-    }
-  };
+export interface CreatePostRepository {
+    getAll(category?: string, take?: number): Promise<PostWithCategory[]>;
+    getById(id: string): Promise<PostWithCategory | null>;
+    addPost(postData: any): Promise<PostWithCategory>;
 }
