@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { IPostService } from '../../services/post.types.js';
+import type { PostService } from '../../services/post.js';
 import type { GetPostsQueryDto, GetPostParamsDto, CreatePostDto } from '../dto/post.js';
 
 export interface IPostHandler {
@@ -8,7 +8,7 @@ export interface IPostHandler {
   createPost(req: Request<{}, {}, CreatePostDto>, res: Response): Promise<Response>;
 }
 
-export function createPostHandler(postService: IPostService): IPostHandler {
+export function createPostHandler(postService: PostService): IPostHandler {
   return {
     async getPosts(req: Request<{}, {}, {}, GetPostsQueryDto>, res: Response): Promise<Response> {
       try {
@@ -16,38 +16,44 @@ export function createPostHandler(postService: IPostService): IPostHandler {
         const posts = await postService.getPosts(category, take);
         return res.status(200).json(posts);
       } catch (error: any) {
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error.message || 'Server error' });
       }
     },
 
     async getPostById(req: Request<GetPostParamsDto>, res: Response): Promise<Response> {
       try {
         const { id } = req.params;
-        if (!id || id.trim() === '') {
-          return res.status(400).json({ error: 'ID parameter is required' });
-        }
         const post = await postService.getPostById(id);
         return res.status(200).json(post);
       } catch (error: any) {
-        if (error.message === 'Post not found') {
-          return res.status(404).json({ error: error.message });
+        if (error.message === 'INVALID_ID') {
+          return res.status(400).json({ error: 'Некоректний id' });
         }
-        return res.status(500).json({ error: error.message });
+        if (error.message === 'POST_NOT_FOUND') {
+          return res.status(404).json({ error: 'Post не знайдено' });
+        }
+        return res.status(500).json({ error: error.message || 'Server error' });
       }
     },
 
     async createPost(req: Request<{}, {}, CreatePostDto>, res: Response): Promise<Response> {
       try {
-        const { title, content, author, category } = req.body;
-        if (!title || !content || !author || !category) {
-          return res.status(400).json({ 
-            error: 'Fields validation failed. title, content, author, and category are required' 
-          });
-        }
-        const newPost = await postService.createPost({ title, content, author, category });
+        const newPost = await postService.createPost(req.body);
         return res.status(201).json(newPost);
       } catch (error: any) {
-        return res.status(500).json({ error: error.message });
+        if (error.message === 'INVALID_CATEGORY_ID') {
+          return res.status(400).json({ error: 'Некоректний categoryId' });
+        }
+        if (error.message === 'UNPROCESSABLE_FIELDS') {
+          return res.status(422).json({ error: 'Недопустимі поля' });
+        }
+        if (error.message === 'CATEGORY_NOT_FOUND') {
+          return res.status(404).json({ error: 'Category не знайдено' });
+        }
+        if (error.message === 'CONFLICT') {
+          return res.status(409).json({ error: 'Повторна назва' });
+        }
+        return res.status(500).json({ error: error.message || 'Server error' });
       }
     }
   };

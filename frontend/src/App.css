@@ -80,9 +80,15 @@ body {
   font-weight: bold;
 }
 
-.category-tech { background-color: var(--accent-tech); }
-.category-food { background-color: var(--accent-food); }
-.category-travel { background-color: var(--accent-travel); }
+.category-tech { 
+  background-color: var(--accent-tech); 
+}
+.category-food { 
+  background-color: var(--accent-food); 
+}
+.category-travel { 
+  background-color: var(--accent-travel); 
+}
 
 .post-author {
   color: var(--text-secondary);
