@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import type { PostService } from '../../services/post.js';
-import type { GetPostsQueryDto, GetPostParamsDto, CreatePostDto } from '../dto/post.js';
+import type { PostService } from '../../../services/post/post.js';
+import type { GetPostsQueryDto, GetPostParamsDto, CreatePostDto } from '../../dto/post.js';
 
 export interface IPostHandler {
   getPosts(req: Request<{}, {}, {}, GetPostsQueryDto>, res: Response): Promise<Response>;
@@ -44,11 +44,14 @@ export function createPostHandler(postService: PostService): IPostHandler {
         if (error.message === 'INVALID_CATEGORY_ID') {
           return res.status(400).json({ error: 'Некоректний categoryId' });
         }
+        if (error.message === 'INVALID_AUTHOR_ID') {
+          return res.status(400).json({ error: 'Некоректний authorId' });
+        }
         if (error.message === 'UNPROCESSABLE_FIELDS') {
           return res.status(422).json({ error: 'Недопустимі поля' });
         }
-        if (error.message === 'CATEGORY_NOT_FOUND') {
-          return res.status(404).json({ error: 'Category не знайдено' });
+        if (error.message === 'RELATION_NOT_FOUND') {
+          return res.status(404).json({ error: 'Category або Author не знайдено' });
         }
         if (error.message === 'CONFLICT') {
           return res.status(409).json({ error: 'Повторна назва' });
