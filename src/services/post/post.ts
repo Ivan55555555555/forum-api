@@ -1,5 +1,5 @@
-import type { PostWithCategory } from '../domain/post/entity.js';
-import type { IPostRepository } from '../repositories/post.js';
+import type { PostWithCategory } from '../../domain/post/entity.js';
+import type { IPostRepository } from '../../repositories/post.js';
 
 export function createPostService(postRepository: IPostRepository) {
   return {
@@ -26,7 +26,7 @@ export function createPostService(postRepository: IPostRepository) {
     },
 
     async createPost(postData: any): Promise<PostWithCategory> {
-      const { title, content, categoryId } = postData;
+      const { title, content, categoryId, authorId } = postData;
       
       if (!title || typeof title !== 'string' || !title.trim()) {
         throw new Error('UNPROCESSABLE_FIELDS');
@@ -37,12 +37,22 @@ export function createPostService(postRepository: IPostRepository) {
         throw new Error('INVALID_CATEGORY_ID'); 
       }
 
+      const parsedAuthorId = Number(authorId);
+      if (isNaN(parsedAuthorId) || parsedAuthorId <= 0) {
+        throw new Error('INVALID_AUTHOR_ID'); 
+      }
+
       try {
-        const result = await postRepository.addPost({ title, content, categoryId: parsedCategoryId });
+        const result = await postRepository.addPost({ 
+          title, 
+          content, 
+          categoryId: parsedCategoryId, 
+          authorId: parsedAuthorId 
+        });
         return result as unknown as PostWithCategory;
       } catch (error: any) {
         if (error.message?.includes('not found') || error.sqlState === '23503') {
-          throw new Error('CATEGORY_NOT_FOUND'); 
+          throw new Error('RELATION_NOT_FOUND'); 
         }
         if (error.sqlState === '23505') {
           throw new Error('CONFLICT'); 

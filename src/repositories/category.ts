@@ -2,7 +2,9 @@ import type { CategoryRepository } from "../domain/category/repository.js";
 import type { Category } from "../domain/category/entity.js";
 import { db } from "../prisma/db.js";
 
-export function createCategoryRepository(db: any): CategoryRepository {
+type Database = typeof db
+
+export function createCategoryRepository(db: Database): CategoryRepository {
     async function getAllCategories() {
         return await db.orm.public.Category
             .orderBy((category: any) => category.id.asc())

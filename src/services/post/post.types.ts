@@ -1,5 +1,5 @@
-import type { IPost } from '../domain/post/entity.js';
-import type { CreatePostDto } from '../transport/dto/post.js';
+import type { IPost } from '../../domain/post/entity.js';
+import type { CreatePostDto } from '../../transport/dto/post.js';
 
 export interface IPostService {
   getPosts(category?: string, take?: string | number): Promise<IPost[]>;

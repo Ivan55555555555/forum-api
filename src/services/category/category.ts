@@ -1,4 +1,4 @@
-import type { CategoryRepository } from "../domain/category/repository.js";
+import type { CategoryRepository } from "../../domain/category/repository.js";
 
 export function createCategoryService(repository: CategoryRepository) {
     async function getCategories() {
