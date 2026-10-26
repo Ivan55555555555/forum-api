@@ -20,11 +20,17 @@ import { createUserRouter } from './transport/routers/auth.js';
 import { hashPassword, verifyPassword } from './lib/password.js';
 import { signAccessToken } from './lib/jwt.js';
 
+import cors from "cors"
+
 const app = express();
 const PORT = 8000;
 const HOST = 'localhost';
 
 app.use(express.json());
+
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 
 const userRepository = createUserRepository(db);
 const userService = createAuthService(

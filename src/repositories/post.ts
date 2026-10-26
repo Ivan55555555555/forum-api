@@ -9,7 +9,12 @@ export interface IPostRepository {
 export function createPostRepository(db: any): IPostRepository {
   return {
     async getAll(category?: string, take?: number): Promise<IPost[]> {
-      let query = db.orm.public.Post.include("category").include("author");
+      let query = db.orm.public.Post.include("author");
+
+      try {
+        query = query.include("category");
+      } catch (e) {
+      }
 
       if (category) {
         query = query.where({ category: { name: category } });
@@ -33,9 +38,9 @@ export function createPostRepository(db: any): IPostRepository {
 
     async addPost(postData: any): Promise<IPost> {
       const { categoryId, authorId, ...fields } = postData;
+      
       return await db.orm.public.Post.create({
         ...fields,
-        category: (category: any) => category.connect({ id: Number(categoryId) }),
         author: (author: any) => author.connect({ id: Number(authorId) })
       });
     }
