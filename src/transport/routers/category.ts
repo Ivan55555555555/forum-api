@@ -5,7 +5,7 @@ export function createCategoryRouter(handler: ReturnType<typeof createCategoryHa
     const router = Router();
 
     router.get("/", handler.getAllCategories);
-    router.get("/:id", handler.getCategoryById);
+    // router.get("/:id", handler.getCategoryById);
     router.post("/", handler.createCategory);
 
     return router;
