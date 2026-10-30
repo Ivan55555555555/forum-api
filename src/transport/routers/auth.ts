@@ -1,10 +1,14 @@
 import { Router } from "express";
 import type { UserHandler } from "../handlers/user/user.types";
+import type { RequestHandler } from "express"
 
-export function createUserRouter(handler: UserHandler){
-    const router = Router()
+export function createUserRouter(userHandler: UserHandler, requireAuth: RequestHandler){
+    const userRouter = Router()
 
-    router.post('/register', handler.register)
-    router.post("/login", handler.login)
-    return router
+    userRouter.post('/register', userHandler.register)
+    userRouter.post('/login', userHandler.login)
+    userRouter.post('/refresh', userHandler.refresh)
+    userRouter.get('/me', requireAuth, userHandler.me)
+
+    return userRouter
 }
