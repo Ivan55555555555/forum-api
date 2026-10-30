@@ -1,8 +1,8 @@
-import type { UserRepository } from "../domain/user/repository.js";
+import type { UserRepositoryContract } from "../domain/user/repository.js";
 
 type Database = typeof import("../prisma/db.js").db;
 
-export function createUserRepository(database: Database): UserRepository {
+export function createUserRepository(database: Database): UserRepositoryContract {
     return {
         async createUser(data) {
             try {
@@ -14,8 +14,11 @@ export function createUserRepository(database: Database): UserRepository {
                 throw error;
             }
         },
-        async getByEmail(email) {
+        async getUserByEmail(email) {
             return await database.orm.public.User.where({ email }).first();
-        }
+        },
+        async getUserById(id) {
+            return database.orm.public.User.where({ id }).first();
+        },
     };
 }
