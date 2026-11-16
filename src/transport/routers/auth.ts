@@ -9,6 +9,7 @@ export function createUserRouter(userHandler: UserHandler, requireAuth: RequestH
     userRouter.post('/login', userHandler.login)
     userRouter.post('/refresh', userHandler.refresh)
     userRouter.get('/me', requireAuth, userHandler.me)
+    userRouter.post("/logout", requireAuth, userHandler.logout)
 
     return userRouter
 }

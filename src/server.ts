@@ -12,12 +12,13 @@ import { createCategoryHandler } from './transport/handlers/category/category.js
 import { createCategoryRouter } from './transport/routers/category.js';
 
 import { createUserRepository } from './repositories/user.js';
+import { createRefreshSessionRepository } from './repositories/refresh-session.js';
 import { createAuthService } from './services/user/user.js';
 import { createUserHandler } from './transport/handlers/user/user.js';
 import { createUserRouter } from './transport/routers/auth.js';
 import { hashPassword, verifyPassword } from './lib/password.js';
 
-import { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from './lib/jwt.js';
+import { hashRefreshToken, signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from './lib/jwt.js';
 
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -39,13 +40,16 @@ app.use(cookieParser());
 
 const requireAuth = createRequireAuth(verifyAccessToken);
 
+const sessionRepository = createRefreshSessionRepository(db);
 const userRepository = createUserRepository(db);
 
 const userService = createAuthService(
     userRepository, 
     { hash: hashPassword, verify: verifyPassword }, 
     { signAccessToken, signRefreshToken },
-    { verifyAccessToken, verifyRefreshToken }
+    { verifyAccessToken, verifyRefreshToken },
+    { hash: hashRefreshToken },
+    sessionRepository
 );
 
 const userHandler = createUserHandler(userService);
