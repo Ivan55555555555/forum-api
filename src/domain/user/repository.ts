@@ -2,7 +2,8 @@ import type { User } from "./entity.js";
 
 export type NewUser = Omit<User, "id">;
 
-export interface UserRepository {
-    createUser: (data: NewUser) => Promise<User>;
-    getByEmail: (email: string) => Promise<User | null>;
+export interface UserRepositoryContract{
+    createUser: (data: NewUser) => Promise<User> 
+    getUserByEmail: (email: string) => Promise<User | null>
+    getUserById: (id: number) => Promise<User | null>
 }
