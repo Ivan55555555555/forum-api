@@ -16,6 +16,7 @@
     "@reduxjs/toolkit": "^2.13.0",
     "@types/node": "^26.6.3",
     "argon2": "^0.45.1",
+    "biome": "^0.3.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.6",
@@ -26,6 +27,7 @@
     "typescript": "^7.0.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.8",
     "@prisma/orm-postgres": "^8.0.0-rc.23",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",

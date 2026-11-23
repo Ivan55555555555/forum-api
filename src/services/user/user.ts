@@ -1,26 +1,19 @@
-import type { RefreshRepository } from "../../domain/refresh-session/repository";
-import type { UserRepositoryContract } from "../../domain/user/repository";
 import type {
-    PasswordHasher,
-    TokenSigner,
+    AuthServiceDependencies,
     UserService,
-    TokenVerifier,
-    RefreshTokenHasher,
-} from "./user.types";
+} from "./user.types.js";
 
-export function createAuthService(
-    repository: UserRepositoryContract,
-    passwordHasher: PasswordHasher,
-    tokenSigner: TokenSigner,
-    tokenVerifier: TokenVerifier,
-    tokens: RefreshTokenHasher,
-    sessions: RefreshRepository
-): UserService {
+export function createAuthService({
+    users,
+    sessions,
+    passwords,
+    tokens,
+}: AuthServiceDependencies): UserService {
     return {
         async register(input) {
             const { email, password } = input;
-            const passwordHash = await passwordHasher.hash(password);
-            const user = await repository.createUser({
+            const passwordHash = await passwords.hash(password);
+            const user = await users.createUser({
                 email: email.trim().toLowerCase(),
                 hashPassword: passwordHash,
             });
@@ -31,11 +24,11 @@ export function createAuthService(
         },
         async login(input) {
             const { email, password } = input;
-            const user = await repository.getUserByEmail(email.trim().toLowerCase());
-            if (!user || !(await passwordHasher.verify(user.hashPassword, password))) {
+            const user = await users.getUserByEmail(email.trim().toLowerCase());
+            if (!user || !(await passwords.verify(user.hashPassword, password))) {
                 throw new Error("Invalid credentials");
             }
-            const refreshToken = tokenSigner.signRefreshToken(user.id);
+            const refreshToken = tokens.signRefreshToken(user.id);
             await sessions.create({
                 userId: user.id,
                 tokenHash: tokens.hash(refreshToken),
@@ -46,22 +39,22 @@ export function createAuthService(
                     id: user.id,
                     email: user.email,
                 },
-                accessToken: tokenSigner.signAccessToken(user.id),
+                accessToken: tokens.signAccessToken(user.id),
                 refreshToken: refreshToken,
             };
         },
         async refresh(refreshToken) {
-            const userId = tokenVerifier.verifyRefreshToken(refreshToken);
+            const userId = tokens.verifyRefreshToken(refreshToken);
             const oldHash = tokens.hash(refreshToken);
             const session = await sessions.getByHash(oldHash);
             if (!session || session.userId !== userId || session.expiresAt <= new Date()) {
                 throw new Error("INVALID_REFRESH_TOKEN");
             }
-            const user = await repository.getUserById(userId);
+            const user = await users.getUserById(userId);
             if (!user) {
                 throw new Error("INVALID_REFRESH_TOKEN");
             }
-            const newRefreshToken = tokenSigner.signRefreshToken(user.id);
+            const newRefreshToken = tokens.signRefreshToken(user.id);
             const isChanged = await sessions.rotate(
                 oldHash,
                 tokens.hash(newRefreshToken),
@@ -71,7 +64,7 @@ export function createAuthService(
                 throw new Error("INVALID_REFRESH_TOKEN");
             }
             return {
-                accessToken: tokenSigner.signAccessToken(user.id),
+                accessToken: tokens.signAccessToken(user.id),
                 refreshToken: newRefreshToken,
             };
         },
@@ -80,7 +73,7 @@ export function createAuthService(
             await sessions.deleteByHash(tokens.hash(refreshToken));
         },
         async me(id) {
-            const user = await repository.getUserById(id);
+            const user = await users.getUserById(id);
             if (!user) {
                 throw new Error("UNAUTHORIZED");
             }

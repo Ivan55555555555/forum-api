@@ -1,25 +1,10 @@
-import type { Response } from "express";
-import type { UserService, UserTokens } from "../../../services/user/user.types";
-import type { UserHandler } from "./user.types";
-
-const secure = process.env.NODE_ENV === "production";
-
-function setUserTokens(res: Response, tokens: UserTokens) {
-    res.cookie("accessToken", tokens.accessToken, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: secure,
-        maxAge: 15 * 60 * 1000,
-        path: "/"
-    });
-    res.cookie("refreshToken", tokens.refreshToken, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: secure,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: "/auth"
-    });
-}
+import type { UserService } from "../../../services/user/user.types.js";
+import { AUTH_COOKIE } from "../../../shared/constants/auth.js";
+import {
+    clearAuthCookies,
+    setUserCookies,
+} from "../../cookies/auth-cookies.js";
+import type { UserHandler } from "./user.types.js";
 
 export function createUserHandler(service: UserService): UserHandler {
     return {
@@ -28,7 +13,7 @@ export function createUserHandler(service: UserService): UserHandler {
                 const { email, password } = req.body;
                 const user = await service.register({
                     email,
-                    password
+                    password,
                 });
                 res.status(201).json(user);
             } catch (error) {
@@ -41,51 +26,40 @@ export function createUserHandler(service: UserService): UserHandler {
                 const { email, password } = req.body;
                 const result = await service.login({
                     email,
-                    password
+                    password,
                 });
-                
-                setUserTokens(res, {
+
+                setUserCookies(res, {
                     accessToken: result.accessToken,
-                    refreshToken: result.refreshToken
+                    refreshToken: result.refreshToken,
                 });
 
                 res.status(200).json(result.user);
-            } catch (error) {
+            } catch {
                 res.status(500).json({ message: "Internal server error" });
             }
         },
 
         async refresh(req, res) {
-            const refreshToken = req.cookies?.refreshToken;
+            const refreshToken = req.cookies?.[AUTH_COOKIE.REFRESH_TOKEN];
             if (typeof refreshToken !== "string") {
                 res.status(401).json({ message: "Unauthorized" });
                 return;
             }
             try {
                 const tokens = await service.refresh(refreshToken);
-                setUserTokens(res, tokens);
+                setUserCookies(res, tokens);
                 res.status(200).json({ message: "Tokens updated" });
-            } catch (error) {
+            } catch {
                 res.status(401).json({ message: "Unauthorized" });
             }
         },
 
         async logout(req, res) {
             try {
-                const token = req.cookies?.refreshToken;
+                const token = req.cookies?.[AUTH_COOKIE.REFRESH_TOKEN];
                 await service.logout(typeof token === "string" ? token : undefined);
-                res.clearCookie("accessToken", {
-                    httpOnly: true,
-                    secure: secure,
-                    sameSite: "lax",
-                    path: "/"
-                });
-                res.clearCookie("refreshToken", {
-                    httpOnly: true,
-                    secure: secure,
-                    sameSite: "lax",
-                    path: "/auth"
-                });
+                clearAuthCookies(res);
                 res.status(200).json("Logged out!");
             } catch {
                 res.status(500).json("Internal server error");
@@ -95,11 +69,15 @@ export function createUserHandler(service: UserService): UserHandler {
         async me(req, res) {
             try {
                 const userId = res.locals.userId;
+                if (!userId) {
+                    res.status(401).json({ message: "Unauthorized" });
+                    return;
+                }
                 const user = await service.me(userId);
                 res.status(200).json(user);
-            } catch (error) {
+            } catch {
                 res.status(500).json({ message: "Internal server error!" });
             }
-        }
+        },
     };
 }

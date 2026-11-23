@@ -1,6 +1,5 @@
 import type { UserRepositoryContract } from "../domain/user/repository.js";
-
-type Database = typeof import("../prisma/db.js").db;
+import type { Database } from "../prisma/db.js";
 
 export function createUserRepository(database: Database): UserRepositoryContract {
     return {

@@ -1,8 +1,6 @@
 import type { CategoryRepository } from "../domain/category/repository.js";
 import type { Category } from "../domain/category/entity.js";
-import { db } from "../prisma/db.js";
-
-type Database = typeof db
+import type { Database } from "../prisma/db.js";
 
 export function createCategoryRepository(db: Database): CategoryRepository {
     async function getAllCategories() {
