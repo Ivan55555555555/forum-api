@@ -21,6 +21,8 @@ export function createApp(config: Config) {
   app.use(ROUTES.POSTS, routers.postRouter);
   app.use(ROUTES.CATEGORIES, routers.categoryRouter);
   app.use(ROUTES.AUTH, routers.authRouter);
+  app.use(ROUTES.COMMENTS, routers.commentsRouter);
+  app.use(ROUTES.POSTCOMMENTS, routers.postCommentsRouter);
 
   return app;
 }

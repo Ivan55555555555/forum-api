@@ -10,7 +10,8 @@
     "dev": "tsx watch ./src/server.ts",
     "db:init": "prisma db init",
     "db:update": "prisma db update",
-    "db:verify": "prisma db verify"
+    "db:verify": "prisma db verify",
+    "contract:emit": "prisma contract emit"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.13.0",
